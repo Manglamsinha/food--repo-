@@ -1,323 +1,336 @@
-# ReactFood 🍽️
+# Food App - Complete Project Explanation
 
-A modern, full-stack food ordering web application built with React 19 and Node.js. Browse a curated menu, manage your cart, and place orders through a smooth, modal-driven checkout — all powered by a lightweight Express REST API.
-
----
-
-## Overview
-
-**ReactFood** is a single-page food ordering application that replicates the core experience of a restaurant ordering platform. Users can browse a rich menu of 20 dishes, add items to a persistent shopping cart, adjust quantities on the fly, and complete a checkout form that submits their order to a backend server.
-
-**The problem it solves:** Building a self-contained, full-stack ordering UI is a common real-world requirement. This project demonstrates clean separation of concerns between a React frontend and a Node.js API — including async data fetching, global state management via Context + `useReducer`, modal-based UX flows, and form handling with React 19's `useActionState`.
-
-**Who it is for:**
-- Developers learning React 19 patterns (Context API, custom hooks, `useActionState`)
-- Students following along with a structured React course
-- Developers who want a clean, runnable full-stack starter to extend into a production app
-
-**Why it is useful:** The project covers patterns you'll use in virtually every real-world SPA: global state management, custom HTTP hooks, optimistic UI states (loading/error), portal-based modals, and a decoupled REST backend — all in a compact, well-organised codebase.
+This document is a full, simple, and interview-friendly explanation of this repository.
+You can read this once and explain the entire project with confidence.
 
 ---
 
-## Features
+## 1) What this project does
 
-### 🛒 Cart Management
-- Add any meal to the cart with a single click
-- Increment or decrement item quantities directly from the cart modal
-- Quantities auto-update the live cart item count displayed in the header
-- Cart total is computed dynamically and formatted as USD currency
+This is a full-stack food ordering app.
 
-### 🍴 Meal Catalogue
-- Fetches all available meals from the backend on page load
-- Responsive CSS Grid layout that adapts to any screen width
-- Each card shows a high-quality dish photo, name, price badge, and description
-- Graceful loading state ("Fetching meals…") and inline error display if the API is unreachable
+Users can:
+- view meals
+- add meals to cart
+- increase/decrease quantity
+- open checkout
+- submit an order
 
-### 💳 Checkout Flow
-- Modal-driven, multi-step UX: Cart → Checkout → Order Confirmation
-- Collects full customer details: name, email, street address, postal code, and city
-- Server-side validation with field-level error messages surfaced back to the UI
-- Leverages React 19's `useActionState` for clean async form submission
-- Shows a sending spinner while the request is in-flight
-- Displays a success confirmation modal on a 201 response
-- Clears cart automatically after a successful order
-
-### 📡 HTTP Layer
-- Single reusable `useHttp` custom hook encapsulates all fetch logic
-- Handles GET (auto-fired on mount) and POST (manually triggered) requests
-- Exposes `data`, `isLoading`, `error`, `sendRequest`, and `clearData` — a complete async data-fetching interface
-
-### 🎨 UI & Design
-- Dark, warm-toned theme with a `#ffc404` golden accent colour scheme
-- Google Fonts: Raleway (body) + Lato (headings / buttons)
-- Animated modal entrance (`fade-slide-up` keyframe)
-- Native HTML `<dialog>` element managed via React `useRef` + `useEffect` — no third-party modal library
-- React Portal rendering for modals into a dedicated `#modal` DOM node
-- Reusable `Button` (solid and text-only variant) and `Input` UI primitives
-
-### 🗄️ Backend API
-- Serves the meal list from a JSON flat-file data store
-- Persists submitted orders to `orders.json` with a random ID
-- Simulates a 1-second processing delay to demo loading states
-- Permissive CORS headers for local full-stack development
+The backend validates the order and saves it in a JSON file.
 
 ---
 
-## Tech Stack
+## 2) Tech stack
 
-### Frontend
-| Technology | Version | Purpose |
+| Layer | Tech | Purpose |
 |---|---|---|
-| React | 19.0.0 | UI component framework |
-| React DOM | 19.0.0 | DOM rendering, `createPortal` for modals |
-| Vite | 4.5 | Dev server, HMR, and production build tooling |
-| Vanilla CSS | — | All styling (no CSS framework) |
-| Google Fonts | — | Raleway & Lato typefaces |
-
-### Backend
-| Technology | Version | Purpose |
-|---|---|---|
-| Node.js | ≥ 18 (ESM) | Runtime |
-| Express | 4.21 | HTTP server and routing |
-| body-parser | 1.20 | JSON request body parsing |
-| `node:fs/promises` | built-in | Async file-based data store reads/writes |
-
-### Data Storage
-| Layer | Mechanism |
-|---|---|
-| Meals catalogue | `backend/data/available-meals.json` — static flat file, read on every request |
-| Orders | `backend/data/orders.json` — append-only flat file, written on each POST `/orders` |
-
-> **Note:** There is no database. Data persistence is handled entirely through JSON files on disk, making this zero-dependency to set up and ideal for learning/demo purposes.
-
-### APIs & Integrations
-| Endpoint | Method | Description |
-|---|---|---|
-| `GET /meals` | GET | Returns the full meals array |
-| `POST /orders` | POST | Validates and persists a new order |
-
-Static meal images are served from `backend/public/images/` via Express's `express.static` middleware.
+| Frontend | React 19 + Vite | UI rendering and interactions |
+| State | Context API + useReducer | Cart and modal flow state |
+| Network | Browser fetch (custom hook) | API calls |
+| Backend | Node.js + Express 4 | APIs and static files |
+| Storage | JSON files in `backend/data` | meals and order persistence |
 
 ---
 
-## Project Structure
+## 3) High-level architecture
 
+```mermaid
+flowchart LR
+  user[User]
+  fe[React Frontend]
+  api[Express API]
+  meals[available-meals.json]
+  orders[orders.json]
+
+  user --> fe
+  fe -->|GET /meals| api
+  fe -->|POST /orders| api
+  api --> meals
+  api --> orders
 ```
-food--repo--main/
-├── index.html                  # Vite HTML entry point
-├── vite.config.js              # Vite + React plugin configuration
-├── package.json                # Frontend dependencies (React 19, Vite)
-├── eslint.config.js            # ESLint rules for React + Hooks
-│
-├── src/
-│   ├── main.jsx                # React root — mounts <App /> into #root
-│   ├── App.jsx                 # Root component; composes context providers + layout
-│   ├── App.css                 # Root-level styles
-│   ├── index.css               # Global styles, CSS variables, animations
-│   │
-│   ├── assets/
-│   │   └── logo.jpg            # Header logo image
-│   │
-│   ├── components/
-│   │   ├── Header.jsx          # Top nav with logo, app title, and cart button
-│   │   ├── Meals.jsx           # Fetches & renders the meal grid
-│   │   ├── MealItem.jsx        # Individual meal card (image, name, price, CTA)
-│   │   ├── Cart.jsx            # Cart modal (item list, total, checkout CTA)
-│   │   ├── CartItem.jsx        # Single cart row with +/- quantity controls
-│   │   ├── Checkout.jsx        # Checkout form modal with order submission
-│   │   └── Error.jsx           # Reusable inline error display component
-│   │   └── UI/
-│   │       ├── Button.jsx      # Reusable button (solid + text-only variants)
-│   │       ├── Input.jsx       # Labelled form input primitive
-│   │       └── Modal.jsx       # Native <dialog>-based portal modal
-│   │
-│   ├── store/
-│   │   ├── CartContext.jsx     # Cart state (items, addItem, removeItem, clearCart)
-│   │   └── UserProgressContext.jsx  # UI flow state ('', 'cart', 'checkout')
-│   │
-│   ├── hooks/
-│   │   └── useHttp.js          # Generic fetch hook (GET/POST, loading, error)
-│   │
-│   └── util/
-│       └── formatting.js       # Intl.NumberFormat USD currency formatter
-│
-└── backend/
-    ├── app.js                  # Express server (GET /meals, POST /orders, CORS)
-    ├── package.json            # Backend dependencies (express, body-parser)
-    └── data/
-        ├── available-meals.json    # 20 menu items with name, price, description, image
-        └── orders.json             # Persisted orders array (append-only)
-    └── public/
-        └── images/             # 20 high-res JPEG dish photographs
+
+Simple meaning:
+- Frontend asks backend for meals.
+- Frontend sends order to backend.
+- Backend reads/writes JSON files.
+
+---
+
+## 4) Frontend architecture
+
+Main app composition is in `src/App.jsx`:
+
+- `UserProgressContextProvider`
+  - `CartContextProvider`
+    - `Header`
+    - `Meals`
+    - `Cart`
+    - `Checkout`
+
+This means all major components can access global state from contexts.
+
+```mermaid
+flowchart TD
+  app[App.jsx]
+  up[UserProgressContextProvider]
+  cart[CartContextProvider]
+  header[Header]
+  meals[Meals]
+  cartModal[Cart]
+  checkout[Checkout]
+
+  app --> up --> cart
+  cart --> header
+  cart --> meals
+  cart --> cartModal
+  cart --> checkout
 ```
 
 ---
 
-## Architecture
+## 5) Key frontend files and responsibilities
 
-ReactFood follows a clean **client–server separation** with two independently runnable processes:
+### Core
+- `src/main.jsx`: app entry, React StrictMode, mount to `#root`
+- `src/App.jsx`: provider tree and core component structure
 
-```
-Browser (React SPA — Vite :5173)
-        │
-        │  GET /meals  (on mount)
-        │  POST /orders (on checkout submit)
-        ▼
-Express API Server (:3000)
-        │
-        ├── Reads  → backend/data/available-meals.json
-        └── Writes → backend/data/orders.json
-        └── Serves → backend/public/images/*
-```
+### State
+- `src/store/CartContext.jsx`:
+  - cart reducer
+  - actions: `ADD_ITEM`, `REMOVE_ITEM`, `CLEAR_CART`
+- `src/store/UserProgressContext.jsx`:
+  - controls modal step: `''`, `'cart'`, `'checkout'`
 
-**State management** is handled entirely through React Context:
+### API layer
+- `src/hooks/useHttp.js`:
+  - handles loading, error, data
+  - auto-fetch for GET
+  - manual request for POST
 
-- `CartContext` — owns the `items[]` array and exposes `addItem`, `removeItem`, `clearCart` actions via a `useReducer`-based reducer (ADD_ITEM, REMOVE_ITEM, CLEAR_CART).
-- `UserProgressContext` — owns a `progress` string (`''` | `'cart'` | `'checkout'`) that controls which modal is visible at any given time. This decouples modal visibility from the components that trigger it.
-
-Both contexts are provided at the application root in `App.jsx`, wrapping all children.
+### UI Components
+- `src/components/Header.jsx`: shows cart count and opens cart modal
+- `src/components/Meals.jsx`: fetches meals and renders list
+- `src/components/MealItem.jsx`: single meal card, add to cart
+- `src/components/Cart.jsx`: cart modal with total and checkout button
+- `src/components/Checkout.jsx`: form submit to create order
+- `src/components/UI/Modal.jsx`: dialog + portal
 
 ---
 
-## Getting Started
+## 6) Cart state logic (important for interview)
 
-### Prerequisites
+`CartContext` uses `useReducer`.
 
-- **Node.js** v18 or higher
-- **npm** v8 or higher
+### ADD_ITEM
+- if item already exists by `id`: increase `quantity`
+- else: add new item with `quantity: 1`
 
-### Installation & Running
+### REMOVE_ITEM
+- if quantity is 1: remove item
+- else: decrease quantity by 1
 
-You need two terminal sessions — one for the frontend and one for the backend.
+### CLEAR_CART
+- reset items to empty array
 
-**1. Start the backend API server**
+```mermaid
+flowchart TD
+  start[Cart Action] --> t{Type}
+  t -->|ADD_ITEM| add[Find by id then add or increment]
+  t -->|REMOVE_ITEM| rem[Decrement or remove]
+  t -->|CLEAR_CART| clr[Set items empty]
+  add --> endNode[Updated cart state]
+  rem --> endNode
+  clr --> endNode
+```
+
+---
+
+## 7) Modal flow logic
+
+`UserProgressContext` controls which modal is open:
+- `''` => no modal
+- `'cart'` => cart modal open
+- `'checkout'` => checkout modal open
+
+This app does not use React Router for pages. It uses modal-based flow.
+
+---
+
+## 8) API flow from frontend
+
+### Meals load flow
+1. `Meals.jsx` calls `useHttp('http://localhost:3000/meals', {}, [])`
+2. `useHttp` auto-calls GET on mount
+3. backend returns meals list
+4. meals render in UI
+
+### Order submit flow
+1. user fills checkout form
+2. `Checkout.jsx` collects `FormData`
+3. creates payload:
+   - `order.items` from cart
+   - `order.customer` from form
+4. sends POST to `http://localhost:3000/orders`
+5. backend validates and stores order
+6. success modal shown
+7. cart cleared
+
+---
+
+## 9) Backend architecture
+
+All backend logic is in `backend/app.js`.
+
+### Middleware
+- `bodyParser.json()` for JSON body parsing
+- `express.static('public')` for static assets
+- CORS headers for cross-origin frontend access
+
+### Routes
+- `GET /meals`
+  - reads `backend/data/available-meals.json`
+  - returns parsed meals array
+
+- `POST /orders`
+  - reads `req.body.order`
+  - waits 1 second (simulated delay)
+  - validates items and customer fields
+  - adds random id
+  - reads `backend/data/orders.json`
+  - appends order and writes file
+  - returns `201 { message: 'Order created!' }`
+
+- fallback handler
+  - `OPTIONS` => 200
+  - unknown routes => 404 `{ message: 'Not found' }`
+
+```mermaid
+flowchart TD
+  req[Request] --> mw[JSON parser + CORS + static]
+  mw --> route{Route}
+  route -->|GET /meals| mealsRoute[Read meals JSON and return]
+  route -->|POST /orders| ordersRoute[Validate then append to orders JSON]
+  route -->|Other| notFound[404]
+```
+
+---
+
+## 10) Data model
+
+### Meal object (`available-meals.json`)
+- `id`
+- `name`
+- `price` (string)
+- `description`
+- `image`
+
+### Order object (`orders.json`)
+- `id` (random string generated on server)
+- `items` (array of cart items with quantity)
+- `customer`
+  - `name`
+  - `email`
+  - `street`
+  - `postal-code`
+  - `city`
+
+---
+
+## 11) End-to-end sequence chart
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant FE as React
+  participant BE as Express
+  participant FS as JSON Files
+
+  U->>FE: Open app
+  FE->>BE: GET /meals
+  BE->>FS: Read available-meals.json
+  FS-->>BE: meals data
+  BE-->>FE: 200 meals
+  U->>FE: Add meals to cart
+  U->>FE: Open checkout and submit
+  FE->>BE: POST /orders
+  BE->>BE: Validate + create id
+  BE->>FS: Read/write orders.json
+  BE-->>FE: 201 Order created
+  FE-->>U: Success modal and clear cart
+```
+
+---
+
+## 12) How to run project locally
+
+Backend terminal:
 
 ```bash
 cd backend
 npm install
 npm start
-# Server runs on http://localhost:3000
 ```
 
-**2. Start the frontend dev server**
+Frontend terminal (project root):
 
 ```bash
-# From the project root
 npm install
 npm run dev
-# App runs on http://localhost:5173
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open the Vite URL and use the app.
 
-> The frontend expects the backend to be available at `http://localhost:3000`. Both servers must be running simultaneously for the app to function.
+---
 
-### Build for Production
+## 13) What is good in this project
 
-```bash
-# From the project root
-npm run build
-# Output → dist/
-npm run preview  # Preview the production build locally
+- clean component split
+- proper context-based state management
+- reducer-based cart logic
+- reusable networking hook (`useHttp`)
+- clear API contract
+- end-to-end full-stack flow is easy to explain
+
+---
+
+## 14) Current limitations (be honest in interview)
+
+- no authentication
+- no payment gateway
+- no real database (JSON storage only)
+- hardcoded backend URL in frontend
+- random id generation is not collision-safe
+- no advanced schema validation library
+- possible race condition on concurrent file writes
+
+---
+
+## 15) Production improvement roadmap
+
+```mermaid
+flowchart LR
+  now[Current app] --> env[Use .env for config]
+  env --> db[Move to PostgreSQL or MongoDB]
+  db --> auth[Add auth and role-based access]
+  auth --> ordersApi[Add order history APIs]
+  ordersApi --> payments[Integrate payment and notifications]
 ```
 
 ---
 
-## Available Scripts
+## 16) Interview-ready project explanation (60-90 seconds)
 
-### Frontend (root)
-
-| Script | Description |
-|---|---|
-| `npm run dev` | Start Vite dev server with HMR |
-| `npm run build` | Build optimised production bundle to `dist/` |
-| `npm run preview` | Serve the production build locally |
-| `npm run lint` | Run ESLint across all `.js` and `.jsx` files |
-
-### Backend (`backend/`)
-
-| Script | Description |
-|---|---|
-| `npm start` | Start the Express server on port 3000 |
+"This is a full-stack food ordering app built with React and Express. On the frontend, I use two contexts: one for cart data with a reducer and one for UI progress between cart and checkout modals. Meals are fetched through a reusable `useHttp` hook, and checkout submits order payload to the backend. On the backend, Express exposes `GET /meals` and `POST /orders`, validates incoming data, and stores orders in a JSON file. The project demonstrates component architecture, state management, API integration, and end-to-end request flow. If I take this to production, I would add environment-based config, database storage, auth, and stronger validation."
 
 ---
 
-## API Reference
+## 17) Final revision checklist
 
-### `GET /meals`
+- Understand provider tree in `App.jsx`
+- Understand reducer logic in `CartContext.jsx`
+- Understand request lifecycle in `useHttp.js`
+- Understand checkout payload creation in `Checkout.jsx`
+- Understand validation and write flow in `backend/app.js`
+- Understand limitations and improvements
 
-Returns the full list of available meals.
-
-**Response `200 OK`**
-```json
-[
-  {
-    "id": "m1",
-    "name": "Mac & Cheese",
-    "price": "8.99",
-    "description": "Creamy cheddar cheese mixed with perfectly cooked macaroni...",
-    "image": "images/mac-and-cheese.jpg"
-  }
-]
-```
-
-### `POST /orders`
-
-Submits a new order.
-
-**Request Body**
-```json
-{
-  "order": {
-    "items": [
-      { "id": "m1", "name": "Mac & Cheese", "price": "8.99", "quantity": 2 }
-    ],
-    "customer": {
-      "name": "Jane Doe",
-      "email": "jane@example.com",
-      "street": "123 Main St",
-      "postal-code": "10001",
-      "city": "New York"
-    }
-  }
-}
-```
-
-**Response `201 Created`**
-```json
-{ "message": "Order created!" }
-```
-
-**Response `400 Bad Request`** — if any required customer field is missing or the items array is empty.
-```json
-{ "message": "Missing data: Email, name, street, postal code or city is missing." }
-```
-
----
-
-## Key Design Patterns
-
-**Custom HTTP Hook (`useHttp`)** — A single hook abstracts all fetch logic. It auto-fires GET requests on mount and exposes a `sendRequest` function for manual POST calls. Components only deal with `data`, `isLoading`, and `error`.
-
-**Context + useReducer for Cart** — Rather than prop-drilling or a third-party state library, cart state is managed with a `useReducer` reducer inside a Context provider. This is idiomatic React and scales well for this app size.
-
-**`useActionState` for Form Submission (React 19)** — The Checkout form uses React 19's `useActionState` hook to bind the form's `action` attribute to an async function, naturally handling the pending/submitting state without manual `useState` boilerplate.
-
-**Native `<dialog>` Modal** — Rather than relying on a UI library, the Modal component leverages the browser-native `<dialog>` element with `showModal()` / `close()` for accessible, backdrop-aware modals. React Portals render them outside the normal component tree into a dedicated `#modal` div.
-
----
-
-## Potential Improvements
-
-- **Database** — Replace the flat-file JSON store with SQLite or PostgreSQL for real persistence and concurrent-write safety.
-- **Authentication** — Add user login so order history can be tracked per account.
-- **Quantity selector on meal cards** — Allow users to pick a quantity before adding rather than tapping "+" multiple times in the cart.
-- **Environment variables** — Move the hardcoded `http://localhost:3000` base URL into a `.env` file for easier environment switching.
-- **Tests** — Add Vitest unit tests for the cart reducer and `useHttp` hook; Playwright E2E tests for the checkout flow.
-- **Deployment** — Containerise both services with Docker Compose for one-command local setup and straightforward cloud deployment.
-
----
-
-## License
-
-This project is intended for educational purposes. No license file is included in the repository.
+If you can explain these six points clearly, you can explain the full project confidently.
