@@ -1,8 +1,5 @@
 # Food App - Complete Project Explanation
 
-This document is a full, simple, and interview-friendly explanation of this repository.
-You can read this once and explain the entire project with confidence.
-
 ---
 
 ## 1) What this project does
